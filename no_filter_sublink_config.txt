@@ -1,0 +1,164 @@
+addEventListener('fetch', event => {
+    event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+    const url = new URL(request.url);
+    const targetUrl = url.pathname.slice(1);
+
+    try {
+        new URL(targetUrl);
+    } catch (e) {
+        console.error('Invalid URL:', targetUrl);
+        return new Response(generateHTML(), { status: 400, headers: { 'Content-Type': 'text/html' } });
+    }
+
+    console.log('Requesting:', targetUrl); // Log the target URL
+
+    const modifiedRequest = new Request(targetUrl + url.search, {
+        method: request.method,
+        headers: request.headers,
+        body: request.body,
+        redirect: 'follow',
+    });
+
+    try {
+        const response = await fetch(modifiedRequest);
+
+        // Check if the response is HTML
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.includes('text/html')) {
+            console.error('Unexpected HTML response:', targetUrl);
+            return new Response('Unexpected HTML response.', { status: 500 });
+        }
+
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+        });
+    } catch (error) {
+        console.error('Error fetching the target URL:', error);
+        return new Response('Error fetching the target URL.', { status: 500 });
+    }
+}
+
+function generateHTML() {
+    return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+                    background-size: 400% 400%;
+                    animation: gradient 15s ease infinite;
+                    height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                }
+                @keyframes gradient {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                h2 {
+                    margin-top: 10px;
+                }
+                .button {
+                    margin-top: 20px;
+                    padding: 15px 30px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: white;
+                    background-color: #e73c7e;
+                    border: none;
+                    border-radius: 50px;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+                }
+                .button:hover {
+                    background-color: #FFD700;
+                }
+                .copy-text {
+                    cursor: pointer;
+                    margin-top: 20px;
+                    padding: 10px;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 10px;
+                    transition: background-color 0.3s;
+                }
+                .copy-text:hover {
+                    background-color: rgba(0, 0, 0, 0.7);
+                }
+                .success-message {
+                    display: none;
+                    margin-top: 10px;
+                    color: #FFD700;
+                }
+            </style>
+        </head>
+        <body>
+            <h1 id="message">Invalid URL provided.</h1>
+            <h2 id="submessage">Please enter your filter subdomain after entering your worker domain.</h2>
+            <button class="button" id="toggleButton" onclick="toggleLanguage()">فارسی کردن متن</button>
+            <button class="button" id="tutorialButton" onclick="openTutorial()">Tutorial Link for This Worker (Agha Imanpour)</button>
+            <div class="copy-text" id="copyText" onclick="copyToClipboard('TE2zDBcvTYyWBLExHddLdZiYjeAz8SZs8J')">TE2zDBcvTYyWBLExHddLdZiYjeAz8SZs8J<br>شبکه TRC20 میباشد<br> نویتکس  هست  روی متن بزنید تا کپی شود<br>——————————————————————————————————————————<br>لطفاً حمایت کنید میلاد هستم</div>
+            <div class="success-message" id="successMessage">با موفقیت کپی شد</div>
+            <script>
+                function toggleLanguage() {
+                    const message = document.getElementById('message');
+                    const submessage = document.getElementById('submessage');
+                    const toggleButton = document.getElementById('toggleButton');
+                    const tutorialButton = document.getElementById('tutorialButton');
+                    const copyText = document.getElementById('copyText');
+                    const successMessage = document.getElementById('successMessage');
+
+                    if (toggleButton.textContent === 'فارسی کردن متن') {
+                        message.textContent = 'آدرس نامعتبر است.';
+                        submessage.textContent = 'لطفاً زیر دامنه فیلتر خود را بعد از وارد کردن دامنه کارگر خود وارد کنید.';
+                        toggleButton.textContent = 'Switch to English';
+                        tutorialButton.textContent = 'لینک آموزش کار با این ورکر (آقا ایمان پور)';
+                        copyText.innerHTML = 'TE2zDBcvTYyWBLExHddLdZiYjeAz8SZs8J<br>شبکه TRC20 میباشد<br> نویتکس  هست  روی متن بزنید تا کپی شود<br>——————————————————————————————————————————<br>لطفاً حمایت کنید میلاد هستم';
+                        successMessage.textContent = 'با موفقیت کپی شد';
+                    } else {
+                        message.textContent = 'Invalid URL provided.';
+                        submessage.textContent = 'Please enter your filter subdomain after entering your worker domain.';
+                        toggleButton.textContent = 'فارسی کردن متن';
+                        tutorialButton.textContent = 'Tutorial Link for This Worker (Agha Imanpour)';
+                        copyText.innerHTML = 'TE2zDBcvTYyWBLExHddLdZiYjeAz8SZs8J<br>شبکه TRC20 میباشد<br> نویتکس  هست  روی متن بزنید تا کپی شود<br>——————————————————————————————————————————<br>لطفاً حمایت کنید میلاد هستم';
+                        successMessage.textContent = 'Successfully copied';
+                    }
+                }
+
+                function copyToClipboard(text) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        const successMessage = document.getElementById('successMessage');
+                        successMessage.style.display = 'block';
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 2000);
+                    }, function(err) {
+                        console.error('Async: Could not copy text: ', err);
+                    });
+                }
+
+                function openTutorial() {
+                    const userAgent = navigator.userAgent.toLowerCase();
+                    if (userAgent.includes('windows') || userAgent.includes('android') || userAgent.includes('linux')) {
+                        window.open('https://www.youtube.com/@iAghapour', '_blank');
+                    } else {
+                        window.location.href = 'https://www.youtube.com/@iAghapour';
+                    }
+                }
+            </script>
+        </body>
+        </html>
+    `;
+}
